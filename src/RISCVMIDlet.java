@@ -243,6 +243,8 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             boolean isPoweredOn = true;
             
             while (isPoweredOn) {
+                vram.clear();
+
                 core = new MiniRV32IMA.State();
 
                 canvas.writeString("Loading Image.bin...\n");
