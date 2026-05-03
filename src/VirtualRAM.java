@@ -226,6 +226,40 @@ public class VirtualRAM {
                    (load1(addr + 3) << 24);
         }
     }
+
+    public void clear() {
+        tick = 0;
+        for (int i = 0; i < cacheTags.length; i++) {
+            cacheTags[i] = -1;
+            cacheAge[i] = 0;
+            dirty[i] = false;
+        
+            if (cachePages[i] != null) {
+                for (int j = 0; j < PAGE_SIZE; j++) {
+                    cachePages[i][j] = 0;
+                }
+            }
+        }
+
+        if (swap != null) {
+            try {
+                swap.closeRecordStore();
+                RecordStore.deleteRecordStore("VRAM_SWAP");
+            
+                swap = RecordStore.openRecordStore("VRAM_SWAP", true);
+            
+                if (pageToRecordId != null) {
+                    for (int i = 0; i < pageToRecordId.length; i++) {
+                        pageToRecordId[i] = 0;
+                    }
+                }
+            } catch (Exception e) {
+                try {
+                    swap = RecordStore.openRecordStore("VRAM_SWAP", true);
+                } catch (Exception ex) {}
+            }
+        }
+    }
     
     public void cleanup() {
         if (swap != null) {
