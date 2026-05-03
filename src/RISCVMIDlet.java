@@ -32,7 +32,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
     };
 
     private static final byte[] dtb32mb = {
-        
+
         (byte)0xd0, (byte)0x0d, (byte)0xfe, (byte)0xed, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x38, 0x00, 0x00, 0x05, 0x00,
 
         0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00,
@@ -243,6 +243,8 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             boolean isPoweredOn = true;
             
             while (isPoweredOn) {
+		vram.cleanup();
+
                 core = new MiniRV32IMA.State();
 
                 canvas.writeString("Loading Image.bin...\n");
