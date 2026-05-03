@@ -200,7 +200,8 @@ public class MiniRV32IMA {
                             if (isUnsignedGreaterOrEq(addy, ramSize - sizeMinusOne)) {
                                 addy += MINIRV32_RAM_IMAGE_OFFSET;
                                 if (isMMIORange(addy)) {
-                                    if (addy == 0x11000000 && rs2 == 0x5555) return 0x5555;
+                                    if (addy == 0x11100000)
+                                        if (rs2 == 0x5555 || rs2 == 0x7777) return rs2;
                                     sys.handleMemStoreControl(addy, rs2);
                                 } else {
                                     trap = (7 + 1);
