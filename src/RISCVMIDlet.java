@@ -1,4 +1,3 @@
-
 import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
 import java.io.*;
@@ -13,6 +12,24 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
     
     private int[] kbBuffer = new int[64];
     private int kbReadPtr = 0, kbWritePtr = 0;
+
+    private long lastTapTime = 0;
+    private int lastTapKey = -1;
+    private int tapIndex = 0;
+    private boolean t9Mode = true;
+
+    private final String[] T9_MAP = new String[] {
+        " 0",               // 0
+        "./-_@*~,?!1",      // 1
+        "abcABC2",          // 2
+        "defDEF3",          // 3
+        "ghiGHI4",          // 4
+        "jklJKL5",          // 5
+        "mnoMNO6",          // 6
+        "pqrsPQRS7",        // 7
+        "tuvTUV8",          // 8
+        "wxyzWXYZ9"         // 9
+    };
 
     private static final byte[] dtb32mb = {
 
@@ -256,7 +273,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
                     if (elapsedUs < 1) elapsedUs = 1; 
                     lastTime = now;
                     
-                    int ret = MiniRV32IMA.step(core, vram, ramSize, elapsedUs, 5000, this);
+                    int ret = MiniRV32IMA.step(core, vram, ramSize, elapsedUs, 10000, this);
                     
                     if (ret == 0x5555) {
                         canvas.writeString("\nPOWEROFF@0x" + toHex8(core.cycleh) + toHex8(core.cyclel) + "\n");
@@ -401,15 +418,60 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             }
         }
 
-        protected void keyPressed(int keyCode) {
-            int s = -1;
-            if (keyCode >= 32 && keyCode <= 126) s = keyCode;
-            else if (keyCode == -7 || keyCode == 8) s = 127; // delete
-            else if (getGameAction(keyCode) == FIRE || keyCode == 10) s = 10; // enter
-            
+        private void queueChar(int s) {
             if (s != -1) {
                 kbBuffer[kbWritePtr] = s;
                 kbWritePtr = (kbWritePtr + 1) % kbBuffer.length;
+            }
+        }
+
+        protected void keyPressed(int keyCode) {
+            int action = getGameAction(keyCode);
+            
+            if (action == UP)    { queueChar(27); queueChar(91); queueChar(65); return; } // ESC [ A
+            if (action == DOWN)  { queueChar(27); queueChar(91); queueChar(66); return; } // ESC [ B
+            if (action == RIGHT) { queueChar(27); queueChar(91); queueChar(67); return; } // ESC [ C
+            if (action == LEFT)  { queueChar(27); queueChar(91); queueChar(68); return; } // ESC [ D
+
+            if (action == FIRE || keyCode == 10) { 
+                queueChar(10); 
+                lastTapKey = -1;
+                return; 
+            }
+
+            if (keyCode == -7 || keyCode == 8) { 
+                queueChar(127); 
+                lastTapKey = -1;
+                return; 
+            }
+
+            if (keyCode == '#') {
+                t9Mode = !t9Mode;
+                lastTapKey = -1;
+                return;
+            }
+
+            if (t9Mode && keyCode >= '0' && keyCode <= '9') {
+                long now = System.currentTimeMillis();
+                int numKey = keyCode - '0';
+                String chars = T9_MAP[numKey];
+                
+                if (keyCode == lastTapKey && (now - lastTapTime) < 1000) {
+                    queueChar(127);
+                    tapIndex = (tapIndex + 1) % chars.length();
+                } else {
+                    tapIndex = 0;
+                }
+                
+                queueChar(chars.charAt(tapIndex));
+                lastTapKey = keyCode;
+                lastTapTime = now;
+                return;
+            }
+
+            if (keyCode >= 32 && keyCode <= 126) {
+                queueChar(keyCode);
+                lastTapKey = -1;
             }
         }
     }
