@@ -6,30 +6,11 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
     private Display display;
     private TerminalCanvas canvas;
     private MiniRV32IMA.State core;
-    private byte[] ram;
     
     int ramSize = 32 * 1024 * 1024;
     
     private int[] kbBuffer = new int[64];
     private int kbReadPtr = 0, kbWritePtr = 0;
-
-    private long lastTapTime = 0;
-    private int lastTapKey = -1;
-    private int tapIndex = 0;
-    private boolean t9Mode = true;
-
-    private final String[] T9_MAP = new String[] {
-        " 0",               // 0
-        "./-_@*~,?!1",      // 1
-        "abcABC2",          // 2
-        "defDEF3",          // 3
-        "ghiGHI4",          // 4
-        "jklJKL5",          // 5
-        "mnoMNO6",          // 6
-        "pqrsPQRS7",        // 7
-        "tuvTUV8",          // 8
-        "wxyzWXYZ9"         // 9
-    };
 
     private static final byte[] dtb32mb = {
 
@@ -230,7 +211,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
 
     public void startApp() {
         display = Display.getDisplay(this);
-        canvas = new TerminalCanvas();
+        canvas = new TerminalCanvas(display);
         display.setCurrent(canvas);
         new Thread(this).start();
     }
@@ -336,11 +317,17 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
     class TerminalCanvas extends Canvas {
         private int cols, rows;
         private char[][] screen;
+        private int[][] colors;
+        
         private int curX = 0, curY = 0;
         private Font font = Font.getFont(Font.FACE_MONOSPACE, Font.STYLE_PLAIN, Font.SIZE_SMALL);
         private int charW, charH;
 
-        public TerminalCanvas() {
+        private int currentColor = 0xFFFFFF;
+        private int ansiState = 0; 
+        private int ansiValue = 0;
+
+        public TerminalCanvas(Display display) {
             setFullScreenMode(true);
             charW = Math.max(1, font.charWidth('W')); 
             charH = Math.max(1, font.getHeight());
@@ -359,14 +346,17 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             if (newRows <= 0) newRows = 1;
 
             char[][] newScreen = new char[newRows][newCols];
+            int[][] newColors = new int[newRows][newCols];
             
             for (int i = 0; i < newRows; i++) {
                 for (int j = 0; j < newCols; j++) {
                     newScreen[i][j] = ' ';
+                    newColors[i][j] = 0xFFFFFF;
                 }
             }
 
             screen = newScreen;
+            colors = newColors;
             cols = newCols;
             rows = newRows;
             
@@ -379,25 +369,68 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         public void putChar(char c) {
             if (screen == null) return;
             
+            if (ansiState == 0) {
+                if (c == 27) { ansiState = 1; return; }
+            } else if (ansiState == 1) {
+                if (c == '[') { ansiState = 2; ansiValue = 0; return; }
+                ansiState = 0;
+            } else if (ansiState == 2) {
+                if (c >= '0' && c <= '9') {
+                    ansiValue = ansiValue * 10 + (c - '0');
+                    return;
+                } else if (c == 'm') {
+                    applyAnsiColor(ansiValue);
+                    ansiState = 0;
+                    return;
+                } else if (c == ';') {
+                    applyAnsiColor(ansiValue);
+                    ansiValue = 0;
+                    return;
+                } else {
+                    ansiState = 0;
+                    return;
+                }
+            }
+
             if (c == '\n') { 
                 curX = 0; curY++; 
             } else if (c == '\r') { 
                 curX = 0; 
             } else {
-                if (curX < cols && curY < rows) screen[curY][curX] = c;
+                if (curX < cols && curY < rows) {
+                    screen[curY][curX] = c;
+                    colors[curY][curX] = currentColor;
+                }
                 curX++;
                 if (curX >= cols) { curX = 0; curY++; }
             }
+            
             if (curY >= rows) scroll();
             repaint();
+        }
+
+        private void applyAnsiColor(int code) {
+            switch (code) {
+                case 0:  currentColor = 0xFFFFFF; break; // Reset
+                case 30: currentColor = 0x000000; break; // Black
+                case 31: currentColor = 0xFF0000; break; // Red
+                case 32: currentColor = 0x00FF00; break; // Green
+                case 33: currentColor = 0xFFFF00; break; // Yellow
+                case 34: currentColor = 0x0000FF; break; // Blue
+                case 35: currentColor = 0xFF00FF; break; // Magenta
+                case 36: currentColor = 0x00FFFF; break; // Cyan
+                case 37: currentColor = 0xFFFFFF; break; // White
+            }
         }
 
         private void scroll() {
             for (int i = 0; i < rows - 1; i++) {
                 System.arraycopy(screen[i + 1], 0, screen[i], 0, cols);
+                System.arraycopy(colors[i + 1], 0, colors[i], 0, cols);
             }
             for (int j = 0; j < cols; j++) {
                 screen[rows - 1][j] = ' ';
+                colors[rows - 1][j] = 0xFFFFFF;
             }
             curY = rows - 1;
         }
@@ -412,18 +445,25 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             g.setColor(0x000000); 
             g.fillRect(0, 0, getWidth(), getHeight());
             
-            g.setColor(0x00FF00); 
             g.setFont(font);
             
             for (int i = 0; i < rows; i++) {
-                g.drawChars(screen[i], 0, cols, 2, i * charH, Graphics.TOP | Graphics.LEFT);
+                for (int j = 0; j < cols; j++) {
+                    if (screen[i][j] != ' ') {
+                        g.setColor(colors[i][j]);
+                        g.drawChar(screen[i][j], j * charW + 2, i * charH, Graphics.TOP | Graphics.LEFT);
+                    }
+                }
             }
         }
 
         private void queueChar(int s) {
             if (s != -1) {
-                kbBuffer[kbWritePtr] = s;
-                kbWritePtr = (kbWritePtr + 1) % kbBuffer.length;
+                int next = (kbWritePtr + 1) % kbBuffer.length;
+                if (next != kbReadPtr) {
+                    kbBuffer[kbWritePtr] = s;
+                    kbWritePtr = next;
+                }
             }
         }
 
@@ -437,44 +477,45 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
 
             if (action == FIRE || keyCode == 10) { 
                 queueChar(10); 
-                lastTapKey = -1;
                 return; 
             }
 
             if (keyCode == -7 || keyCode == 8) { 
                 queueChar(127); 
-                lastTapKey = -1;
                 return; 
             }
 
             if (keyCode == '#') {
-                t9Mode = !t9Mode;
-                lastTapKey = -1;
-                return;
-            }
-
-            if (t9Mode && keyCode >= '0' && keyCode <= '9') {
-                long now = System.currentTimeMillis();
-                int numKey = keyCode - '0';
-                String chars = T9_MAP[numKey];
-                
-                if (keyCode == lastTapKey && (now - lastTapTime) < 1000) {
-                    queueChar(127);
-                    tapIndex = (tapIndex + 1) % chars.length();
-                } else {
-                    tapIndex = 0;
-                }
-                
-                queueChar(chars.charAt(tapIndex));
-                lastTapKey = keyCode;
-                lastTapTime = now;
+                openNativeTextBox();
                 return;
             }
 
             if (keyCode >= 32 && keyCode <= 126) {
                 queueChar(keyCode);
-                lastTapKey = -1;
             }
+        }
+
+        private void openNativeTextBox() {
+            final TextBox textBox = new TextBox("Terminal Input", "", 256, TextField.ANY);
+            final Command cmdOk = new Command("Send", Command.OK, 1);
+            final Command cmdCancel = new Command("Cancel", Command.CANCEL, 1);
+            
+            textBox.addCommand(cmdOk);
+            textBox.addCommand(cmdCancel);
+            
+            textBox.setCommandListener(new CommandListener() {
+                public void commandAction(Command c, Displayable d) {
+                    if (c == cmdOk) {
+                        String text = textBox.getString();
+                        for (int i = 0; i < text.length(); i++) {
+                            queueChar(text.charAt(i));
+                        }
+                    }
+                    display.setCurrent(TerminalCanvas.this);
+                }
+            });
+            
+            display.setCurrent(textBox);
         }
     }
 }
