@@ -338,7 +338,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             initScreen(w, h);
         }
 
-        private void initScreen(int w, int h) {
+        private synchronized void initScreen(int w, int h) {
             int newCols = w / charW;
             int newRows = h / charH;
             
@@ -366,7 +366,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             repaint();
         }
 
-        public void putChar(char c) {
+        public synchronized void putChar(char c) {
             if (screen == null) return;
             
             if (ansiState == 0) {
@@ -423,7 +423,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             }
         }
 
-        private void scroll() {
+        private synchronized void scroll() {
             for (int i = 0; i < rows - 1; i++) {
                 System.arraycopy(screen[i + 1], 0, screen[i], 0, cols);
                 System.arraycopy(colors[i + 1], 0, colors[i], 0, cols);
@@ -439,7 +439,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             for (int i = 0; i < s.length(); i++) putChar(s.charAt(i)); 
         }
 
-        protected void paint(Graphics g) {
+        protected synchronized void paint(Graphics g) {
             if (screen == null) return;
             
             g.setColor(0x000000); 
@@ -468,6 +468,11 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         }
 
         protected void keyPressed(int keyCode) {
+            if (keyCode >= '0' && keyCode <= '9') {
+                queueChar(keyCode);
+                return;
+            }
+
             int action = getGameAction(keyCode);
             
             if (action == UP)    { queueChar(27); queueChar(91); queueChar(65); return; } // ESC [ A
