@@ -524,3 +524,4 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         }
     }
 }
+
