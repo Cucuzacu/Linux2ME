@@ -12,3 +12,5 @@ Arrow keys do what arrow keys always did.
 That button between the arrow keys sends the command.
 "#" opens a textbox to type, on QWERTY phones just use the keyboard.
 
+# License
+MIT
