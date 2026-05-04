@@ -9,6 +9,6 @@ It uses only 512 km of ram and 32 mb of storage so it can run on old phones with
 Input:
 
 Arrow keys do what arrow keys always did.
-That button between the arrow keys sends the message.
+That button between the arrow keys sends the command.
 "#" opens a textbox to type, on QWERTY phones just use the keyboard.
 
