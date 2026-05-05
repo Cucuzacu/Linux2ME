@@ -219,6 +219,8 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
     public void run() {
         try {
             canvas.writeString("Allocating 32MB Virtual RAM...\n");
+            canvas.repaint(); 
+            canvas.serviceRepaints();
             VirtualRAM vram = new VirtualRAM(ramSize); 
             
             boolean isPoweredOn = true;
@@ -524,4 +526,3 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         }
     }
 }
-
