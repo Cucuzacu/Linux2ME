@@ -9,101 +9,104 @@ public final class TinyFont {
     public static final int CELL_W = 4;
     public static final int CELL_H = 6;
 
+    private static final short[] GLYPHS = new short[128];
+
+    static {
+        short defaultGlyph = 061202;
+        for (int i = 0; i < 128; i++) {
+            GLYPHS[i] = defaultGlyph;
+        }
+
+        GLYPHS['A'] = GLYPHS['a'] = 025755;
+        GLYPHS['B'] = GLYPHS['b'] = 065656;
+        GLYPHS['C'] = GLYPHS['c'] = 034443;
+        GLYPHS['D'] = GLYPHS['d'] = 065556;
+        GLYPHS['E'] = GLYPHS['e'] = 074647;
+        GLYPHS['F'] = GLYPHS['f'] = 074644;
+        GLYPHS['G'] = GLYPHS['g'] = 034553;
+        GLYPHS['H'] = GLYPHS['h'] = 055755;
+        GLYPHS['I'] = GLYPHS['i'] = 072227;
+        GLYPHS['J'] = GLYPHS['j'] = 011152;
+        GLYPHS['K'] = GLYPHS['k'] = 055655;
+        GLYPHS['L'] = GLYPHS['l'] = 044447;
+        GLYPHS['M'] = GLYPHS['m'] = 057755;
+        GLYPHS['N'] = GLYPHS['n'] = 057775;
+        GLYPHS['O'] = GLYPHS['o'] = 025552;
+        GLYPHS['P'] = GLYPHS['p'] = 065644;
+        GLYPHS['Q'] = GLYPHS['q'] = 025573;
+        GLYPHS['R'] = GLYPHS['r'] = 065655;
+        GLYPHS['S'] = GLYPHS['s'] = 034216;
+        GLYPHS['T'] = GLYPHS['t'] = 072222;
+        GLYPHS['U'] = GLYPHS['u'] = 055557;
+        GLYPHS['V'] = GLYPHS['v'] = 055552;
+        GLYPHS['W'] = GLYPHS['w'] = 055775;
+        GLYPHS['X'] = GLYPHS['x'] = 055255;
+        GLYPHS['Y'] = GLYPHS['y'] = 055222;
+        GLYPHS['Z'] = GLYPHS['z'] = 071247;
+
+        GLYPHS['0'] = 075557;
+        GLYPHS['1'] = 026227;
+        GLYPHS['2'] = 061247;
+        GLYPHS['3'] = 061216;
+        GLYPHS['4'] = 055711;
+        GLYPHS['5'] = 074616;
+        GLYPHS['6'] = 034652;
+        GLYPHS['7'] = 071222;
+        GLYPHS['8'] = 025252;
+        GLYPHS['9'] = 025316;
+
+        GLYPHS['['] = 064446;
+        GLYPHS[']'] = 031113;
+        GLYPHS['('] = 012221;
+        GLYPHS[')'] = 042224;
+        GLYPHS['{'] = 032623;
+        GLYPHS['}'] = 062326;
+        GLYPHS['<'] = 012421;
+        GLYPHS['>'] = 042124;
+        GLYPHS['/'] = 011244;
+        GLYPHS['\\']= 044211;
+        GLYPHS['-'] = 000700;
+        GLYPHS['_'] = 000007;
+        GLYPHS['='] = 007070;
+        GLYPHS['+'] = 002720;
+        GLYPHS[':'] = 002020;
+        GLYPHS[';'] = 002024;
+        GLYPHS['.'] = 000002;
+        GLYPHS[','] = 000024;
+        GLYPHS['\'']= 022000;
+        GLYPHS['"'] = 055000;
+        GLYPHS['!'] = 022202;
+        GLYPHS['?'] = 061202;
+        GLYPHS['*'] = 005250;
+        GLYPHS['#'] = 057575;
+        GLYPHS['%'] = 051245;
+        GLYPHS['&'] = 025253;
+        GLYPHS['|'] = 022222;
+        GLYPHS['@'] = 075743;
+        GLYPHS['^'] = 025000;
+        GLYPHS['`'] = 042000;
+        GLYPHS['~'] = 003600;
+        GLYPHS['$'] = 026232;
+        GLYPHS[' '] = 000000;
+    }
+
     private TinyFont() {
     }
 
     public static void drawChar(Graphics g, char ch, int x, int y) {
-        String[] rows = glyph(ch);
-        int ry;
-        int rx;
+        short glyph = (ch >= 0 && ch < 128) ? GLYPHS[ch] : GLYPHS['?'];
+        
+        if (glyph == 0) return;
 
-        for (ry = 0; ry < rows.length; ry++) {
-            String row = rows[ry];
-            for (rx = 0; rx < row.length(); rx++) {
-                if (row.charAt(rx) == '1')
+        int mask = 16384; 
+
+        for (int ry = 0; ry < GLYPH_H; ry++) {
+            for (int rx = 0; rx < GLYPH_W; rx++) {
+                if ((glyph & mask) != 0) {
                     g.fillRect(x + rx, y + ry, 1, 1);
+                }
+                mask >>= 1;
             }
         }
-    }
-
-    private static String[] glyph(char ch) {
-        switch (ch) {
-            case 'A': case 'a': return p("010", "101", "111", "101", "101");
-            case 'B': case 'b': return p("110", "101", "110", "101", "110");
-            case 'C': case 'c': return p("011", "100", "100", "100", "011");
-            case 'D': case 'd': return p("110", "101", "101", "101", "110");
-            case 'E': case 'e': return p("111", "100", "110", "100", "111");
-            case 'F': case 'f': return p("111", "100", "110", "100", "100");
-            case 'G': case 'g': return p("011", "100", "101", "101", "011");
-            case 'H': case 'h': return p("101", "101", "111", "101", "101");
-            case 'I': case 'i': return p("111", "010", "010", "010", "111");
-            case 'J': case 'j': return p("001", "001", "001", "101", "010");
-            case 'K': case 'k': return p("101", "101", "110", "101", "101");
-            case 'L': case 'l': return p("100", "100", "100", "100", "111");
-            case 'M': case 'm': return p("101", "111", "111", "101", "101");
-            case 'N': case 'n': return p("101", "111", "111", "111", "101");
-            case 'O': case 'o': return p("010", "101", "101", "101", "010");
-            case 'P': case 'p': return p("110", "101", "110", "100", "100");
-            case 'Q': case 'q': return p("010", "101", "101", "111", "011");
-            case 'R': case 'r': return p("110", "101", "110", "101", "101");
-            case 'S': case 's': return p("011", "100", "010", "001", "110");
-            case 'T': case 't': return p("111", "010", "010", "010", "010");
-            case 'U': case 'u': return p("101", "101", "101", "101", "111");
-            case 'V': case 'v': return p("101", "101", "101", "101", "010");
-            case 'W': case 'w': return p("101", "101", "111", "111", "101");
-            case 'X': case 'x': return p("101", "101", "010", "101", "101");
-            case 'Y': case 'y': return p("101", "101", "010", "010", "010");
-            case 'Z': case 'z': return p("111", "001", "010", "100", "111");
-
-            case '0': return p("111", "101", "101", "101", "111");
-            case '1': return p("010", "110", "010", "010", "111");
-            case '2': return p("110", "001", "010", "100", "111");
-            case '3': return p("110", "001", "010", "001", "110");
-            case '4': return p("101", "101", "111", "001", "001");
-            case '5': return p("111", "100", "110", "001", "110");
-            case '6': return p("011", "100", "110", "101", "010");
-            case '7': return p("111", "001", "010", "010", "010");
-            case '8': return p("010", "101", "010", "101", "010");
-            case '9': return p("010", "101", "011", "001", "110");
-
-            case '[': return p("110", "100", "100", "100", "110");
-            case ']': return p("011", "001", "001", "001", "011");
-            case '(': return p("001", "010", "010", "010", "001");
-            case ')': return p("100", "010", "010", "010", "100");
-            case '{': return p("011", "010", "110", "010", "011");
-            case '}': return p("110", "010", "011", "010", "110");
-            case '<': return p("001", "010", "100", "010", "001");
-            case '>': return p("100", "010", "001", "010", "100");
-            case '/': return p("001", "001", "010", "100", "100");
-            case '\\': return p("100", "100", "010", "001", "001");
-            case '-': return p("000", "000", "111", "000", "000");
-            case '_': return p("000", "000", "000", "000", "111");
-            case '=': return p("000", "111", "000", "111", "000");
-            case '+': return p("000", "010", "111", "010", "000");
-            case ':': return p("000", "010", "000", "010", "000");
-            case ';': return p("000", "010", "000", "010", "100");
-            case '.': return p("000", "000", "000", "000", "010");
-            case ',': return p("000", "000", "000", "010", "100");
-            case '\'': return p("010", "010", "000", "000", "000");
-            case '"': return p("101", "101", "000", "000", "000");
-            case '!': return p("010", "010", "010", "000", "010");
-            case '?': return p("110", "001", "010", "000", "010");
-            case '*': return p("000", "101", "010", "101", "000");
-            case '#': return p("101", "111", "101", "111", "101");
-            case '%': return p("101", "001", "010", "100", "101");
-            case '&': return p("010", "101", "010", "101", "011");
-            case '|': return p("010", "010", "010", "010", "010");
-            case '@': return p("111", "101", "111", "100", "011");
-            case '^': return p("010", "101", "000", "000", "000");
-            case '`': return p("100", "010", "000", "000", "000");
-            case '~': return p("000", "011", "110", "000", "000");
-            case '$': return p("010", "110", "010", "011", "010");
-            case ' ': return p("000", "000", "000", "000", "000");
-            default: return p("111", "001", "010", "000", "010");
-        }
-    }
-
-    private static String[] p(String a, String b, String c, String d, String e) {
-        return new String[] { a, b, c, d, e };
     }
 }
