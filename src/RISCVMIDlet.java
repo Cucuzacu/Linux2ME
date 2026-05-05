@@ -221,7 +221,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             canvas.writeString("Allocating 32MB Virtual RAM...\n");
             canvas.repaint(); 
             canvas.serviceRepaints();
-            Thread.sleep(1);
+            Thread.sleep(100);
             VirtualRAM vram = new VirtualRAM(ramSize); 
             
             boolean isPoweredOn = true;
@@ -323,7 +323,6 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         private int[][] colors;
         
         private int curX = 0, curY = 0;
-        private Font font = Font.getFont(Font.FACE_MONOSPACE, Font.STYLE_PLAIN, Font.SIZE_SMALL);
         private int charW, charH;
 
         private int currentColor = 0xFFFFFF;
@@ -332,8 +331,8 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
 
         public TerminalCanvas(Display display) {
             setFullScreenMode(true);
-            charW = Math.max(1, font.charWidth('W')); 
-            charH = Math.max(1, font.getHeight());
+            charW = TinyFont.CELL_W; 
+            charH = TinyFont.CELL_H;
             initScreen(getWidth(), getHeight());
         }
 
@@ -448,13 +447,11 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
             g.setColor(0x000000); 
             g.fillRect(0, 0, getWidth(), getHeight());
             
-            g.setFont(font);
-            
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < cols; j++) {
                     if (screen[i][j] != ' ') {
                         g.setColor(colors[i][j]);
-                        g.drawChar(screen[i][j], j * charW + 2, i * charH, Graphics.TOP | Graphics.LEFT);
+                        TinyFont.drawChar(g, screen[i][j], j * charW, i * charH);
                     }
                 }
             }
