@@ -218,6 +218,11 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
 
     public void run() {
         try {
+            canvas.writeString("");
+            canvas.writeString("Allocating 32MB Virtual RAM...\n");
+            canvas.repaint(); 
+            canvas.serviceRepaints();
+            Thread.sleep(1);
             VirtualRAM vram = new VirtualRAM(ramSize); 
             
             boolean isPoweredOn = true;
