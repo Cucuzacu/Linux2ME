@@ -5,11 +5,11 @@ import java.io.InputStream;
 import java.io.IOException;
 
 public class VirtualRAM {
-    private static final int PAGE_SHIFT = 12;
+    private static final int PAGE_SHIFT = 14;
     private static final int PAGE_SIZE = 1 << PAGE_SHIFT;
     private static final int PAGE_MASK = PAGE_SIZE - 1;
     
-    private static final int MAX_CACHE_PAGES = 128;
+    private static final int MAX_CACHE_PAGES = 16;
 
     public final int length;
     private int numPages;
