@@ -293,6 +293,8 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         if (addy == 0x10000000) canvas.putChar((char)val);
         else if (addy == 0x11004000) core.timermatchl = val;
         else if (addy == 0x11004004) core.timermatchh = val;
+        else if (addy == 0x1100BFF8) core.timerl = val;
+        else if (addy == 0x1100BFFC) core.timerh = val;
     }
 
     public int handleMemLoadControl(int addy) {
