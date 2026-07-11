@@ -9,7 +9,7 @@ public class VirtualRAM {
     private static final int PAGE_SIZE = 1 << PAGE_SHIFT;
     private static final int PAGE_MASK = PAGE_SIZE - 1;
     
-    private static final int MAX_CACHE_PAGES = 16;
+    private static final int MAX_CACHE_PAGES = 256;
 
     public final int length;
     private int numPages;
@@ -85,8 +85,8 @@ public class VirtualRAM {
                         swap.setRecord(pageToRecordId[oldPage], cachePages[slot], 0, PAGE_SIZE);
                     }
                 } catch (Exception e) {
-                        System.out.println("VRAM SWAP FAILED! Storage full?");
                         e.printStackTrace();
+                        throw new RuntimeException("not enough storage");
                 }
             }
         }
