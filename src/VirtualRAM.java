@@ -9,7 +9,7 @@ public class VirtualRAM {
     private static final int PAGE_SIZE = 1 << PAGE_SHIFT;
     private static final int PAGE_MASK = PAGE_SIZE - 1;
     
-    private static final int MAX_CACHE_PAGES = 256;
+    private static final int MAX_CACHE_PAGES = 64;
 
     public final int length;
     private int numPages;
