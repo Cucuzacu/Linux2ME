@@ -8,6 +8,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
     private MiniRV32IMA.State core;
     
     int ramSize = 32 * 1024 * 1024;
+    private int ramPages = 64;
     
     private int[] kbBuffer = new int[64];
     private int kbReadPtr = 0, kbWritePtr = 0;
@@ -211,18 +212,44 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
 
     public void startApp() {
         display = Display.getDisplay(this);
-        canvas = new TerminalCanvas(display);
-        display.setCurrent(canvas);
-        new Thread(this).start();
+
+        final Form configForm = new Form("RAM");
+        final TextField pagesField = new TextField("Cache Pages (min 64):", "64", 6, TextField.NUMERIC);
+        final Command startCmd = new Command("Start", Command.OK, 1);
+
+        configForm.append(pagesField);
+        configForm.addCommand(startCmd);
+
+        configForm.setCommandListener(new CommandListener() {
+            public void commandAction(Command c, Displayable d) {
+                if (c == startCmd) {
+                    try {
+                        ramPages = Integer.parseInt(pagesField.getString().trim());
+                    } catch (Exception e) {
+                        ramPages = 64;
+                    }
+
+                    if (ramPages < 64) {
+                        ramPages = 64;
+                    }
+
+                    canvas = new TerminalCanvas(display);
+                    display.setCurrent(canvas);
+                    new Thread(RISCVMIDlet.this).start();
+                }
+            }
+        });
+
+        display.setCurrent(configForm);
     }
 
     public void run() {
         try {
-            canvas.writeString("Allocating 32MB Virtual RAM...\n");
+            canvas.writeString("Allocating 32MB Virtual RAM (" + ramPages + " pages)...\n");
             canvas.repaint(); 
             canvas.serviceRepaints();
             Thread.sleep(100);
-            VirtualRAM vram = new VirtualRAM(ramSize); 
+            VirtualRAM vram = new VirtualRAM(ramSize, ramPages);
             
             boolean isPoweredOn = true;
             
