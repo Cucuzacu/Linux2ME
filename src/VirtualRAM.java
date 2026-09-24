@@ -23,11 +23,15 @@ public class VirtualRAM {
     private RecordStore swap;
     private int[] pageToRecordId;
 
-    public VirtualRAM(int sizeInBytes) {
+    public VirtualRAM(int sizeInBytes, int maxCachePages) {
+        if (maxCachePages < 64) {
+            maxCachePages = 64;
+        }
+
         this.length = sizeInBytes;
         this.numPages = (sizeInBytes + PAGE_SIZE - 1) / PAGE_SIZE;
 
-        int cacheSize = Math.min(this.numPages, MAX_CACHE_PAGES);
+        int cacheSize = Math.min(this.numPages, maxCachePages);
         this.cachePages = new byte[cacheSize][];
         this.cacheTags = new int[cacheSize];
         this.cacheAge = new long[cacheSize];
