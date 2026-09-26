@@ -12,5 +12,9 @@ Arrow keys do what arrow keys always did.
 That button between the arrow keys sends the command.
 "#" opens a textbox to type, on QWERTY phones just use the keyboard.
 
+## RAM Cache Pages
+
+Increase the amount of cache pages as much as you can until the app crashes because of an Out of Memory Exception.
+
 # License
 MIT
