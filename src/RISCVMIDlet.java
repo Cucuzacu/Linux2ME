@@ -7,7 +7,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
     private TerminalCanvas canvas;
     private MiniRV32IMA.State core;
     
-    int ramSize = 32 * 1024 * 1024;
+    int ramSize = 16 * 1024 * 1024;
     private int ramPages = 64;
     
     private int[] kbBuffer = new int[64];
@@ -53,7 +53,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
 
         0x72, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x41,
 
-        0x00, 0x00, 0x00, 0x00, (byte)0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, (byte)0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
 
         0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x63, 0x70, 0x75, 0x73, 0x00, 0x00, 0x00, 0x00,
 
@@ -245,7 +245,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
 
     public void run() {
         try {
-            canvas.writeString("Allocating 32MB Virtual RAM (" + ramPages + " pages)...\n");
+            canvas.writeString("Allocating 16MB Virtual RAM (" + ramPages + " pages)...\n");
             canvas.repaint(); 
             canvas.serviceRepaints();
             Thread.sleep(100);
