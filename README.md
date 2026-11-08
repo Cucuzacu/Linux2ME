@@ -6,7 +6,7 @@ Run Linux on old J2ME phones!
 
 This is a port of https://github.com/cnlohr/mini-rv32ima to j2me.
 
-It uses only a few kb of ram and 16 mb of storage so it can run on old phones without running out of memory.
+It uses only a few kb of ram and 8 mb of storage so it can run on old phones without running out of memory.
 
 Input:
 
