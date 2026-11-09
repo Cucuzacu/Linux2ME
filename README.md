@@ -18,6 +18,12 @@ That fire button sends the command.
 
 Increase the amount of cache pages as much as you can until the app crashes because of an Out of Memory Exception.
 
+## Usage
+
+It only works on phones that have sd card support for now.
+
+Put the Image.bin in the root of you sd card, plug the sd card into the phone and install the jar from releases. Allow it to read files from the phone. It will stay for about 1 minute loading the image, just wait, it will be relatively fast after that
+
 # License
 
 MIT
