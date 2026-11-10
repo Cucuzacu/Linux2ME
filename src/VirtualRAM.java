@@ -9,7 +9,7 @@ public class VirtualRAM {
     private static final int PAGE_SIZE = 1 << PAGE_SHIFT;
     private static final int PAGE_MASK = PAGE_SIZE - 1;
     
-    private static final int MAX_CACHE_PAGES = 64;
+    private static final int MAX_CACHE_PAGES = 32;
 
     public final int length;
     private int numPages;
@@ -24,8 +24,8 @@ public class VirtualRAM {
     private int[] pageToRecordId;
 
     public VirtualRAM(int sizeInBytes, int maxCachePages) {
-        if (maxCachePages < 64) {
-            maxCachePages = 64;
+        if (maxCachePages < 32) {
+            maxCachePages = 32;
         }
 
         this.length = sizeInBytes;
