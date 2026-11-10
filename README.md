@@ -22,7 +22,7 @@ Increase the amount of cache pages as much as you can until the app crashes beca
 
 It only works on phones that have sd card support for now.
 
-Put the Image.bin in the root of you sd card, plug the sd card into the phone and install the jar from releases. Allow it to read files from the phone. It will stay for about 1 minute loading the image, just wait, it will be relatively fast after that
+Put the Image.bin in the root of you sd card, plug the sd card into the phone and install the jar from releases. Allow it to read files from the phone. It will stay for about 1 minute loading the image, just wait, it will be relatively fast after that. Or at least, way, way faster than I expected.
 
 # License
 
