@@ -1,5 +1,8 @@
 import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
+import javax.microedition.io.*;
+import javax.microedition.io.file.*;
+import java.util.Enumeration;
 import java.io.*;
 
 public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnable {
@@ -8,7 +11,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
     private MiniRV32IMA.State core;
     
     int ramSize = 8 * 1024 * 1024;
-    private int ramPages = 64;
+    private int ramPages = 32;
     
     private int[] kbBuffer = new int[64];
     private int kbReadPtr = 0, kbWritePtr = 0;
@@ -214,7 +217,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         display = Display.getDisplay(this);
 
         final Form configForm = new Form("RAM");
-        final TextField pagesField = new TextField("Cache Pages (min 64):", "64", 6, TextField.NUMERIC);
+        final TextField pagesField = new TextField("Cache Pages (min 64):", "32", 6, TextField.NUMERIC);
         final Command startCmd = new Command("Start", Command.OK, 1);
 
         configForm.append(pagesField);
@@ -226,16 +229,15 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
                     try {
                         ramPages = Integer.parseInt(pagesField.getString().trim());
                     } catch (Exception e) {
-                        ramPages = 64;
+                        ramPages = 32;
                     }
 
-                    if (ramPages < 64) {
-                        ramPages = 64;
+                    if (ramPages < 32) {
+                        ramPages = 32;
                     }
 
                     canvas = new TerminalCanvas(display);
                     display.setCurrent(canvas);
-                    new Thread(RISCVMIDlet.this).start();
                 }
             }
         });
@@ -258,13 +260,35 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
 
                 core = new MiniRV32IMA.State();
 
-                canvas.writeString("Loading Image.bin...\n");
-                InputStream is = getClass().getResourceAsStream("Image.bin");
-                if (is == null) throw new Exception("Image.bin not found :(");
-                
-                int bytesRead = vram.readFromStream(is, 0, ramSize);
-                is.close();
-                canvas.writeString("OS: " + bytesRead + " bytes.\n");
+                canvas.writeString("Scanning storage for Image.bin...\n");
+                boolean found = false;
+            
+                Enumeration roots = FileSystemRegistry.listRoots();
+                while (roots.hasMoreElements()) {
+                    String root = (String) roots.nextElement();
+                    String path = "file:///" + root + "Image.bin";
+                    try {
+                        FileConnection fc = (FileConnection) Connector.open(path, Connector.READ);
+                        if (fc.exists()) {
+                            canvas.writeString("Found on root: " + root + "\n");
+                            long fileSize = fc.fileSize();
+                            InputStream is = fc.openInputStream();
+                            int bytesRead = vram.readFromStream(is, 0, (int) fileSize);
+                            is.close();
+                            fc.close();
+                            canvas.writeString("OS: " + bytesRead + " bytes loaded (" + fileSize + " bytes).\n");
+                            found = true;
+                            break;
+                        }
+                        fc.close();
+                    } catch (Exception ex) {
+                        // try next root
+                    }
+                }
+            
+                if (!found) {
+                    throw new Exception("Image.bin not found on sd card, please put it in the sd card root");
+                }
 
                 int dtbOffset = ramSize - dtb32mb.length;
                 vram.copyFrom(dtb32mb, 0, dtbOffset, dtb32mb.length);
@@ -359,11 +383,21 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         private int ansiState = 0; 
         private int ansiValue = 0;
 
+        private boolean started = false;
+
         public TerminalCanvas(Display display) {
             setFullScreenMode(true);
             charW = Math.max(1, font.charWidth('W')); 
             charH = Math.max(1, font.getHeight());
             initScreen(getWidth(), getHeight());
+        }
+
+        protected void showNotify() {
+            super.showNotify();
+            if (!started) {
+                started = true;
+                new Thread(RISCVMIDlet.this).start();
+            }
         }
 
         protected void sizeChanged(int w, int h) {
