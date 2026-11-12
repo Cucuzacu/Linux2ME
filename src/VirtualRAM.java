@@ -23,7 +23,7 @@ public class VirtualRAM {
     private RecordStore swap;
     private int[] pageToRecordId;
 
-    public static long lastRamCallTime = 0;
+    public static boolean wasRamCalled = false;
 
     public VirtualRAM(int sizeInBytes, int maxCachePages) {
         if (maxCachePages < 32) {
@@ -57,7 +57,7 @@ public class VirtualRAM {
     }
 
     private byte[] getPage(int pageIdx, boolean forWrite) {
-        lastRamCallTime = System.currentTimeMillis();
+        wasRamCalled = !wasRamCalled;
         int cacheLen = cacheTags.length;
         
         for (int i = 0; i < cacheLen; i++) {

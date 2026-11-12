@@ -398,6 +398,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         private int ansiValue = 0;
 
         private boolean started = false;
+        private boolean lastWasRamCalled = false;
 
         public TerminalCanvas(Display display) {
             setFullScreenMode(true);
@@ -536,9 +537,10 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
                 }
             }
 
-            if (System.currentTimeMillis() - VirtualRAM.lastRamCallTime < 150) {
+            if (VirtualRAM.wasRamCalled != lastWasRamCalled) {
                 g.setColor(0x00FF00);
                 g.fillRect(getWidth() - 1, 0, 1, 1);
+                lastWasRamCalled = VirtualRAM.wasRamCalled;
             }
         }
 
