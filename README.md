@@ -20,9 +20,17 @@ Increase the amount of cache pages as much as you can until the app crashes beca
 
 ## Usage
 
-It only works on phones that have sd card support for now.
+###### If your phone has sd card support:
 
-Put the Image.bin in the root of you sd card, plug the sd card into the phone and install the jar from releases. Allow it to read files from the phone. It will stay for about 1 minute loading the image, just wait, it will be relatively fast after that. Or at least, way, way faster than I expected.
+Put the Image.bin in the root of you sd card, plug the sd card into the phone and install Linux2ME.jar from releases.
+
+###### If your phone doesn't have sd card support:
+
+Install Linux2ME\_big.jar from releases, but I don't guarantee it will work, most phones have a jar size limit. It can also be used in an emulator for testing.
+
+
+
+Allow it to read files from the phone. It will stay for about 1 minute loading the image, just wait, it will be relatively fast after that. Or at least, way, way faster than I expected.
 
 # License
 

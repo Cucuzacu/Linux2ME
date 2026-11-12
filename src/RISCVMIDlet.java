@@ -217,7 +217,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         display = Display.getDisplay(this);
 
         final Form configForm = new Form("RAM");
-        final TextField pagesField = new TextField("Cache Pages (min 64):", "32", 6, TextField.NUMERIC);
+        final TextField pagesField = new TextField("Cache Pages (min 32):", "32", 6, TextField.NUMERIC);
         final Command startCmd = new Command("Start", Command.OK, 1);
 
         configForm.append(pagesField);
@@ -262,27 +262,41 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
 
                 canvas.writeString("Scanning storage for Image.bin...\n");
                 boolean found = false;
-            
-                Enumeration roots = FileSystemRegistry.listRoots();
-                while (roots.hasMoreElements()) {
-                    String root = (String) roots.nextElement();
-                    String path = "file:///" + root + "Image.bin";
+
+                InputStream jarIs = getClass().getResourceAsStream("/Image.bin");
+                if (jarIs != null) {
                     try {
-                        FileConnection fc = (FileConnection) Connector.open(path, Connector.READ);
-                        if (fc.exists()) {
-                            canvas.writeString("Found on root: " + root + "\n");
-                            long fileSize = fc.fileSize();
-                            InputStream is = fc.openInputStream();
-                            int bytesRead = vram.readFromStream(is, 0, (int) fileSize);
-                            is.close();
-                            fc.close();
-                            canvas.writeString("OS: " + bytesRead + " bytes loaded (" + fileSize + " bytes).\n");
-                            found = true;
-                            break;
-                        }
-                        fc.close();
+                        int bytesRead = vram.readFromStream(jarIs, 0, ramSize);
+                        jarIs.close();
+                        canvas.writeString("Found Image.bin in JAR root (" + bytesRead + " bytes).\n");
+                        found = true;
                     } catch (Exception ex) {
-                        // try next root
+                        try { jarIs.close(); } catch (Exception e2) {}
+                    }
+                }
+
+                if (!found) {
+                    Enumeration roots = FileSystemRegistry.listRoots();
+                    while (roots.hasMoreElements()) {
+                        String root = (String) roots.nextElement();
+                        String path = "file:///" + root + "Image.bin";
+                        try {
+                            FileConnection fc = (FileConnection) Connector.open(path, Connector.READ);
+                            if (fc.exists()) {
+                                canvas.writeString("Found on root: " + root + "\n");
+                                long fileSize = fc.fileSize();
+                                InputStream is = fc.openInputStream();
+                                int bytesRead = vram.readFromStream(is, 0, (int) fileSize);
+                                is.close();
+                                fc.close();
+                                canvas.writeString("OS: " + bytesRead + " bytes loaded (" + fileSize + " bytes).\n");
+                                found = true;
+                                break;
+                            }
+                            fc.close();
+                        } catch (Exception ex) {
+                            // try next root
+                        }
                     }
                 }
             
@@ -520,6 +534,11 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
                         g.drawChar(screen[i][j], j * charW + 2, i * charH, Graphics.TOP | Graphics.LEFT);
                     }
                 }
+            }
+
+            if (System.currentTimeMillis() - VirtualRAM.lastRamCallTime < 150) {
+                g.setColor(0x00FF00);
+                g.fillRect(getWidth() - 1, 0, 1, 1);
             }
         }
 
