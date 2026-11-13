@@ -336,6 +336,7 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
                     }
                     
                     if (count++ % 10 == 0) {
+                        canvas.repaint();
                         try { Thread.sleep(1); } catch (Exception e) {}
                     }
                 }
@@ -398,7 +399,6 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
         private int ansiValue = 0;
 
         private boolean started = false;
-        private boolean lastWasRamCalled = false;
 
         public TerminalCanvas(Display display) {
             setFullScreenMode(true);
@@ -537,11 +537,13 @@ public class RISCVMIDlet extends MIDlet implements MiniRV32IMA.RVSystem, Runnabl
                 }
             }
 
-            if (VirtualRAM.wasRamCalled != lastWasRamCalled) {
+            if (VirtualRAM.ramAccessCounter > 0) {
+                VirtualRAM.ramAccessCounter--;
                 g.setColor(0x00FF00);
-                g.fillRect(getWidth() - 1, 0, 1, 1);
-                lastWasRamCalled = VirtualRAM.wasRamCalled;
+            } else {
+                g.setColor(0x000000);
             }
+            g.fillRect(getWidth() - 1, 0, 1, 1);
         }
 
         private void queueChar(int s) {

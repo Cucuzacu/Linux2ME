@@ -23,7 +23,7 @@ public class VirtualRAM {
     private RecordStore swap;
     private int[] pageToRecordId;
 
-    public static boolean wasRamCalled = false;
+    public static int ramAccessCounter = 0;
 
     public VirtualRAM(int sizeInBytes, int maxCachePages) {
         if (maxCachePages < 32) {
@@ -57,7 +57,6 @@ public class VirtualRAM {
     }
 
     private byte[] getPage(int pageIdx, boolean forWrite) {
-        wasRamCalled = !wasRamCalled;
         int cacheLen = cacheTags.length;
         
         for (int i = 0; i < cacheLen; i++) {
@@ -91,6 +90,7 @@ public class VirtualRAM {
                     } else {
                         swap.setRecord(pageToRecordId[oldPage], cachePages[slot], 0, PAGE_SIZE);
                     }
+                    ramAccessCounter = 5;
                 } catch (Exception e) {
                         e.printStackTrace();
                         throw new RuntimeException("not enough storage");
@@ -105,6 +105,7 @@ public class VirtualRAM {
         if (swap != null && pageToRecordId[pageIdx] != 0) {
             try {
                 swap.getRecord(pageToRecordId[pageIdx], cachePages[slot], 0);
+                ramAccessCounter = 5;
             } catch (Exception e) {
                 byte[] p = cachePages[slot];
                 for (int i = 0; i < PAGE_SIZE; i++) p[i] = 0;
