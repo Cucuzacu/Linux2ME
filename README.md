@@ -11,7 +11,7 @@ It uses only a few kb of ram and 8 mb of storage so it can run on old phones wit
 Input:
 
 Arrow keys do what arrow keys always did.
-That fire button sends the command.
+The fire button sends the command.
 "#" opens a textbox to type, on QWERTY phones just use the keyboard.
 
 ## RAM Cache Pages
